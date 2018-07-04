@@ -2,9 +2,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import java.io.File;
-import java.io.PrintWriter;
-
 import java.io.IOException;
 
 public class UDMFMap
@@ -81,79 +78,84 @@ public class UDMFMap
 	}
 	
 	public void writeTextmapToFile(String fileName)
-	{
+	{		
+		// make and sort lists for printing
+		
+		List<Vertex> vertices = new ArrayList<Vertex>();
+		
+		for (int i = 0; i < sectors.size(); ++i)
+		for (int j = 0; j < sectors.get(i).lines.length; ++j)
+		{
+			if (!vertices.contains(sectors.get(i).lines[j].v1)) {
+				sectors.get(i).lines[j].v1.index = vertices.size();
+				vertices.add(sectors.get(i).lines[j].v1);
+			}
+			
+			if (!vertices.contains(sectors.get(i).lines[j].v2)) {
+				sectors.get(i).lines[j].v2.index = vertices.size();
+				vertices.add(sectors.get(i).lines[j].v2);
+			}
+		}
+		
+		List<Linedef> lines = new ArrayList<Linedef>();
+		List <Sidedef> sidedefs = new ArrayList<Sidedef>();
+		
+		for (int i = 0; i < sectors.size(); ++i)
+		for (int j = 0; j < sectors.get(i).lines.length; ++j)
+		{
+			if (!lines.contains(sectors.get(i).lines[j]))
+			{
+				sectors.get(i).lines[j].index = lines.size();
+				lines.add(sectors.get(i).lines[j]);
+				
+				sectors.get(i).lines[j].sideFront.index = sidedefs.size();
+				sectors.get(i).lines[j].sideFront.sector = sectors.get(i);
+				sidedefs.add(sectors.get(i).lines[j].sideFront);
+				
+				if (sectors.get(i).lines[j].sideBack != null)
+				{
+					sectors.get(i).lines[j].sideBack.index = sidedefs.size();
+					sectors.get(i).lines[j].sideBack.sector = sectors.get(i);
+					sidedefs.add(sectors.get(i).lines[j].sideBack);
+				}
+			}
+		}
+		
+		// printing
+		
 		try
 		{
-			PrintWriter pw = new PrintWriter(new File(fileName));
-			pw.println("namespace = \"zdoom\";"
-				+ System.lineSeparator());
+			Lump textmap = new Lump();
 			
-			// make and sort lists for printing
-			
-			List<Vertex> vertices = new ArrayList<Vertex>();
-			
-			for (int i = 0; i < sectors.size(); ++i)
-			for (int j = 0; j < sectors.get(i).lines.length; ++j)
-			{
-				if (!vertices.contains(sectors.get(i).lines[j].v1)) {
-					sectors.get(i).lines[j].v1.index = vertices.size();
-					vertices.add(sectors.get(i).lines[j].v1);
-				}
-				
-				if (!vertices.contains(sectors.get(i).lines[j].v2)) {
-					sectors.get(i).lines[j].v2.index = vertices.size();
-					vertices.add(sectors.get(i).lines[j].v2);
-				}
-			}
-			
-			List<Linedef> lines = new ArrayList<Linedef>();
-			List <Sidedef> sidedefs = new ArrayList<Sidedef>();
-			
-			for (int i = 0; i < sectors.size(); ++i)
-			for (int j = 0; j < sectors.get(i).lines.length; ++j)
-			{
-				if (!lines.contains(sectors.get(i).lines[j]))
-				{
-					sectors.get(i).lines[j].index = lines.size();
-					lines.add(sectors.get(i).lines[j]);
-					
-					sectors.get(i).lines[j].sideFront.index = sidedefs.size();
-					sectors.get(i).lines[j].sideFront.sector = sectors.get(i);
-					sidedefs.add(sectors.get(i).lines[j].sideFront);
-					
-					if (sectors.get(i).lines[j].sideBack != null)
-					{
-						sectors.get(i).lines[j].sideBack.index = sidedefs.size();
-						sectors.get(i).lines[j].sideBack.sector = sectors.get(i);
-						sidedefs.add(sectors.get(i).lines[j].sideBack);
-					}
-				}
-			}
-			
-			// printing
-			
+			textmap.data.write(
+				("namespace = \"zdoom\";"
+					+ System.lineSeparator()
+				).getBytes()
+			);
+
 			for (int i = 0; i < vertices.size(); ++i) {
-				pw.println(vertices.get(i).toString());
+				textmap.data.write(vertices.get(i).toString().getBytes());
 			}
 			
 			for (int i = 0; i < lines.size(); ++i) {
-				pw.println(lines.get(i).toString());
+				textmap.data.write(lines.get(i).toString().getBytes());
 			}
 			
 			for (int i = 0; i < lines.size(); ++i) {
-				pw.println(lines.get(i).sideFront.toString());
+				textmap.data.write(lines.get(i).sideFront.toString().getBytes());
 				if (lines.get(i).sideBack != null) {
-					pw.println(lines.get(i).sideBack.toString());
+					textmap.data.write(lines.get(i).sideBack.toString().getBytes());
 				}
 			}
 			
 			for (int i = 0; i < sectors.size(); ++i) {
-				pw.println(sectors.get(i).toString());
+				textmap.data.write(sectors.get(i).toString().getBytes());
 			}
 			
-			pw.close();
+			textmap.data.close();
 		}
-		catch (IOException e) {
+		catch (IOException e)
+		{
 			e.printStackTrace();
 		}
 		

@@ -15,6 +15,13 @@ public class Thing
 	public boolean dormant, class1, class2, class3;
 	// Strife specific flags
 	public boolean standing, strifeAlly, translucent, invisible;
+	// note: suggested editor defaults for all skill, gamemode, and
+	// player class flags is true rather than the udmf default of false.
+	
+	// thing special semantics are only defined for the hexen namespace
+	// or ports which implement this feature in their own namespace.
+	public int special, arg0, arg1, arg2, arg3, arg4;
+	public String comment;
 	
 	public Thing()
 	{
